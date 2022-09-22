@@ -1,0 +1,57 @@
+<!--Programmer: Chris Tralie!-->
+<!--Purpose: Front end point chooser for 2D forward kinematics !-->
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="assets/style.css">
+<script src = "jslibs/gl-matrix-min.js"></script>
+</head>
+<body>
+
+<h2>Forward Kinematics</h2>
+
+<h3>Chris Tralie</h3>
+
+<h3>Directions:</h3>
+<p>
+Choose the coordinates of a target point (drawn in black), then change the angles of the articulated body until the end effector (drawn in green) reaches the target.  The target will turn red once it has been reached.
+</p>
+
+<table>
+<tr>
+<td width = "200">
+<table cellpadding = 2>
+    <tr>
+      <td><h2>target: </h2></td>
+      <td><h1>(</h1></td><td><input type="text" id = "p0x_2" size="3"></input></td><td><h1>,</h1></td>
+      <td><input type="text" id = "p0y_2" size="3"></input></td>
+      <td><h1>)</h1></td>
+    </tr>
+    <tr>
+        <td><h2>angles</h2></td>
+        <td><h1>(</h1></td><td><input type="text" id = "angle1" size="3"></input></td><td><h1>,</h1></td>
+        <td><input type="text" id = "angle2" size="3"></input></td><td><h1>,</h1></td>
+        <td><input type="text" id = "angle3" size="3"></input></td>
+        <td><h1>)</h1></td>
+      </tr>
+</table>
+<button type = "button" onclick = "updateArm()">Update</button>
+
+</td>
+<td>
+<canvas id = "segcanvas" width = "600" height = "600" style="border:1px solid #000000;">
+</canvas>
+</td>
+</tr>
+</table>
+
+<script src="kinematics2d.js"></script>
+<script>
+    let kinematics = new ForwardKinematics2D([100, 100, 100]);
+    function updateArm() {
+        kinematics.updateArm();
+    }
+</script>
+
+
+</body>
+</html>
