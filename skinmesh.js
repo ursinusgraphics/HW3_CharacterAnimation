@@ -70,7 +70,9 @@ class SkinMesh extends BasicMesh {
         for (let i = 0; i < this.vertices.length; i++) {
             this.boneIDs[i] = 0;
         }
-        this.updateBoneTransforms([glMatrix.mat4.create()]);
+        let T = glMatrix.mat4.create();
+        this.updateBoneTransforms([T]);
+        this.needsDisplayUpdate = true;
     }
 
     /**
@@ -113,14 +115,16 @@ class SkinMesh extends BasicMesh {
         super.sendBuffersToGPU(canvas, sProg, pMatrix, mvMatrix, tMatrix);
         // Send over bone IDs
         const gl = canvas.gl;
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.boneIDBuffer);
-        gl.vertexAttribPointer(sProg.vBoneIdxAttrib , this.boneIDBuffer.itemSize, gl.INT, false, 0, 0);
-        // Send over bone transformations
-        const numBones = this.boneTransforms.length;
-        gl.uniform1i(sProg.u_numBones, numBones);
-        for (let i = 0; i < numBones; i++) {
-            gl.uniformMatrix4fv(sProg.u_boneTransforms[i], false, this.boneTransforms[i]);
-            gl.uniformMatrix3fv(sProg.u_boneNormalTransforms[i], false, this.boneNormalTransforms[i]);
+        if ('vBoneIdxAttrib' in sProg) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.boneIDBuffer);
+            gl.vertexAttribPointer(sProg.vBoneIdxAttrib , this.boneIDBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            // Send over bone transformations
+            const numBones = this.boneTransforms.length;
+            gl.uniform1i(sProg.u_numBones, numBones);
+            for (let i = 0; i < numBones; i++) {
+                gl.uniformMatrix4fv(sProg.u_boneTransforms[i], false, this.boneTransforms[i]);
+                gl.uniformMatrix3fv(sProg.u_boneNormalTransforms[i], false, this.boneNormalTransforms[i]);
+            }
         }
     }
 }

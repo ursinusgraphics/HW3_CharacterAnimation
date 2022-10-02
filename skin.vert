@@ -8,7 +8,7 @@ uniform mat3 boneNormalTransforms[MAX_BONES];
 attribute vec3 vPos;
 attribute vec3 vNormal;
 attribute vec3 vColor;
-attribute float boneIdx;
+attribute float vBoneIdx;
 
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
@@ -25,7 +25,7 @@ void main(void) {
     vec3 n = vNormal;
     for (int i = 0; i < MAX_BONES; i++) {
         if (i < numBones) {
-            if (boneIdx - float(i) == 0.0) {
+            if (vBoneIdx - float(i) == 0.0) {
                 v = boneTransforms[i]*v;
                 n = boneNormalTransforms[i]*n;
             }
