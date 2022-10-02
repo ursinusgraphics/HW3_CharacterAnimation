@@ -16,7 +16,7 @@ class Kinematics2D {
     /**
      * Redraw arm based on positions
      */
-    repaint() {
+    repaint(clearRect) {
         const ctx = this.ctx;
         const canvas = this.canvas;
         const dW = 5;
@@ -24,7 +24,9 @@ class Kinematics2D {
         const H = canvas.height;
         const p = this.target;
         const Ps = this.Ps;
-        ctx.clearRect(0, 0, W, H);
+        if (clearRect || clearRect === undefined) {
+            ctx.clearRect(0, 0, W, H);
+        }
     
         if (!(p === null)) {
             //Draw target
@@ -121,10 +123,28 @@ class Fabrik2DTester extends Kinematics2D {
         this.selectArm();
         this.canvas.addEventListener("mousedown", this.selectVec.bind(this));
         this.canvas.addEventListener("touchstart", this.selectVec.bind(this)); //Works on mobile devices!
+        this.startJoint = null;
+    }
+
+    repaint() {
+        const W = this.canvas.width;
+        const H = this.canvas.height;
+        const ctx = this.ctx;
+        ctx.clearRect(0, 0, W, H);
+        const dW = 6;
+        if (!(this.startJoint === null)) {
+            const p = this.startJoint;
+            let dWP = dW*2;
+            ctx.fillStyle = 'black';
+            ctx.fillRect(p[0]-dWP, H-(p[1]+dWP), dWP*2+1, dWP*2+1);
+        }
+        super.repaint(false);
+
     }
 
     selectPoint() {
         this.selectingArm = false;
+        this.startJoint = null;
         this.armButton.style.background = "#bfbfbf";
         this.moveButton.style.background = "#bfbfbf";
         this.targetButton.style.background = "#bb1111";
@@ -138,11 +158,20 @@ class Fabrik2DTester extends Kinematics2D {
     }
     
     moveToTarget() {
-        this.armButton.style.background = "#bfbfbf";
-        this.moveButton.style.background = "#bb1111";;
-        this.targetButton.style.background = "#bfbfbf";
-        FABRIKIter(this.Ps, this.target);
-        this.repaint();
+        if (this.Ps.length > 1) {
+            this.armButton.style.background = "#bfbfbf";
+            this.moveButton.style.background = "#bb1111";;
+            this.targetButton.style.background = "#bfbfbf";
+            if (this.startJoint === null) {
+                this.startJoint = glMatrix.vec3.create();
+                glMatrix.vec3.copy(this.startJoint, this.Ps[0]);
+            }
+            FABRIKIter(this.Ps, this.target);
+            this.repaint();
+        }
+        else {
+            alert("Need to select at least two points on the arm!");
+        }
     }
 
     getMousePos(evt) {
@@ -176,6 +205,9 @@ class Fabrik2DTester extends Kinematics2D {
                 //Remove point
                 if (this.Ps.length > 0) {
                     this.Ps.pop();
+                }
+                else {
+                    this.startJoint = null;
                 }
             }
         }
