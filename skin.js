@@ -1,69 +1,10 @@
-/**
- * Return Plotly plots of equal axes that contain a set of vectors
- * @param {list of glMatrix.vec3} vs
- * @return x, y, and z axes plots 
- */
- function getAxesEqual(vs) {
-  //Determine the axis ranges
-  minval = 0;
-  maxval = 0;
-  for (let i = 0; i < vs.length; i++) {
-      for (let j = 0; j < 3; j++) {
-          if (vs[i][j] < minval){ minval = vs[i][j]; }
-          if (vs[i][j] > maxval){ maxval = vs[i][j]; }
-      }
-  }
-  return [
-  { x: [minval, maxval], y: [0, 0], z: [0, 0],
-    mode: 'lines', line: {color: '#000000', width: 1}, type: 'scatter3d', name:'xaxis'
-  },
-  { x: [0, 0], y: [minval, maxval], z: [0, 0],
-    mode: 'lines', line: {color: '#000000', width: 1}, type: 'scatter3d', name:'yaxis'
-  },
-  { x: [0, 0], y: [0, 0], z: [minval, maxval],
-    mode: 'lines', line: {color: '#000000', width: 1}, type: 'scatter3d', name:'zaxis'
-  }];
-}
-
-
-/**
- * Plot the skeleton joints
- * @param {object} skeleton The skeleton information
- */
-function plotJoints(skeleton) {
-    let x = [];
-    let y = [];
-    let z = [];
-    let points = [x, y, z];
-    let labels = [];
-
-    for (const [key, value] of Object.entries(skeleton)) {
-        // Swap z and y so plotly plots the skeleton upright by default
-        x.push(-value.pos[0]);
-        y.push(value.pos[2]);
-        z.push(value.pos[1]);
-        labels.push(key);
-    }
-
-    const joints = { x: x, y: y, z: z,
-      mode: 'markers', line: {color: '#000000', width: 10},
-      type: 'scatter3d', name:'joints',
-      marker: {color: '#000000', size: 2, symbol: 'circle'}
-    };
-    let data = getAxesEqual(points);
-    data.push(joints);
-    const layout = {margin: {
-        l: 0,
-        r: 0,
-        b: 0,
-        t: 0
-      }};
-    Plotly.newPlot('debugCanvas', data, layout);
-}
-
-
-
-class Node {
+// An example class you could use to encapsulate a joint
+// (feel free to modify this)
+class Joint {
+  /**
+   * @param {string} name Name of this joint
+   * @param {vec3} pos Position of this joint
+   */
   constructor(name, pos) {
     this.name = name;
     this.pos = glMatrix.vec3.clone(pos);
@@ -73,15 +14,29 @@ class Node {
   }
 }
 
-
+/**
+ * Return a list of the vertex coordinates in a mesh
+ * @param {SkinMesh} mesh The mesh
+ * @returns List of vec3: Mesh vertices
+ */
+function getMeshVertices(mesh) {
+  let X = [];
+  for (let i = 0; i < mesh.vertices.length; i++) {
+      X.push(glMatrix.vec3.clone(mesh.vertices[i].pos));
+  }
+  return X;
+}
 
 /**
  * 
  * @param {object} skeleton The skeleton information
- * @param {list of vec3} X Positions of all skin vertices
+ * @param {SkinMesh} mesh The mesh for rendering the skin
  */
-function main(skeleton, X) {
+function main(skeleton, mesh) {
+  mesh.render(mesh.canvas);
   plotJoints(skeleton);
-  // TODO: Fill this in
-
+  let X = getMeshVertices(mesh);
+  //plotSkin(X); // Uncomment this to plot the skin coordinates in the debug area
+  // TODO: Fill this in (with lots of helper methods and classes)
+  
 }

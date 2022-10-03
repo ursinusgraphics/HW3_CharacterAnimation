@@ -16,7 +16,7 @@ class SkinCanvas extends BaseCanvas {
      */
     constructor(glcanvas, shadersrelpath, antialias) {
         super(glcanvas, shadersrelpath, antialias);
-        this.mesh = new SkinMesh(this.gl);
+        this.mesh = new SkinMesh(this, this.gl);
         this.camera = new MousePolarCamera(glcanvas.width, glcanvas.height);
         
         this.gui = new dat.GUI();
@@ -117,7 +117,6 @@ class SkinCanvas extends BaseCanvas {
      */
     repaint() {
         this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.lights = [{pos:this.camera.pos, color:[1, 1, 1], atten:[1, 0, 0]}];
 
         //NOTE: Before this, the canvas has all options we need except

@@ -9,29 +9,57 @@ let vec3 = glMatrix.vec3;
 ///////////////////////////////////////////////////
 
 class SkinMesh extends BasicMesh {
-    constructor(gl){
+    /**
+     * 
+     * @param {SkinCanvas} canvas Handle to canvas that contains this mesh
+     * @param {WebGL} gl WebGL handle
+     */
+    constructor(canvas, gl){
         super();
+        this.canvas = canvas;
         this.gl = gl;
         this.boneTransforms = [];
         this.boneNormalTransforms = [];
-        this.boneIDs = new Int32Array(0);
+        this.boneIDs = new Float32Array(0);
         this.boneIDBuffer = null;
     }
 
     /**
      * Copy over vertex, triangle, and bone ID information to the GPU via
-     * a WebGL handle
+     * a WebGL handle.  Also copy over bone IDs and transformed normals
      * @param {WebGL handle} gl A handle to WebGL
      */
     updateBuffers(gl) {
         super.updateBuffers(gl);
-        if (this.boneIDBuffer === null) {
-            this.boneIDBuffer = gl.createBuffer();
+        if (this.boneIDs.length > 0) {
+            if (this.boneIDBuffer === null) {
+                this.boneIDBuffer = gl.createBuffer();
+            }
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.boneIDBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, this.boneIDs, gl.STATIC_DRAW);
+            this.boneIDBuffer.itemSize = 1;
+            this.boneIDBuffer.numItems = this.boneIDs.length;
         }
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.boneIDBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, this.boneIDs, gl.STATIC_DRAW);
-        this.boneIDBuffer.itemSize = 1;
-        this.boneIDBuffer.numItems = this.boneIDs.length;
+        // Setup the normals in bone coordinates
+        let invNormalTransforms = [];
+        for (let i = 0; i < this.boneNormalTransforms.length; i++) {
+            let TInv = glMatrix.mat3.create();
+            glMatrix.mat3.invert(TInv, this.boneNormalTransforms[i]);
+            invNormalTransforms.push(TInv);
+        }
+        //Normal buffers
+        let N = new Float32Array(this.vertices.length*3);
+        for (let i = 0; i < this.vertices.length; i++) {
+            let n = glMatrix.vec3.create();
+            const idx = this.boneIDs[i];
+            glMatrix.vec3.transformMat3(n, this.origNormals[i], invNormalTransforms[idx]);
+            for (let k = 0; k < 3; k++) {
+                N[i*3+k] = n[k];
+            }
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, N, gl.STATIC_DRAW);
+        this.normalBuffer.itemSize = 3;
     }
 
     /**
@@ -51,8 +79,6 @@ class SkinMesh extends BasicMesh {
             glMatrix.mat3.normalFromMat4(nMatrix, T);
             this.boneNormalTransforms.push(nMatrix);
         }
-        this.updateBuffers(this.gl);
-        this.needsDisplayUpdate = true;
     }
 
     /**
@@ -66,10 +92,16 @@ class SkinMesh extends BasicMesh {
      */
     loadFileFromLines(lines, verbose, fn) {
         super.loadFileFromLines(lines, verbose, fn);
-        this.boneIDs = new Int32Array(this.vertices.length);
+        this.boneIDs = new Float32Array(this.vertices.length);
         for (let i = 0; i < this.vertices.length; i++) {
             this.boneIDs[i] = 0;
         }
+        // Compute normals before any geometry changes
+        this.origNormals = [];
+        for (let i = 0; i < this.vertices.length; i++) {
+            this.origNormals.push(this.vertices[i].getNormal());
+        }
+        // Setup a dummy transformation for the original mesh
         let T = glMatrix.mat4.create();
         this.updateBoneTransforms([T]);
         this.needsDisplayUpdate = true;
@@ -86,23 +118,25 @@ class SkinMesh extends BasicMesh {
      * @param {list of K mat4} boneTransforms Transforms of each bone
      */
     updateRig(X, boneIDs, boneTransforms) {
-        if (X.length != this.vertices[i].pos) {
+        if (X.length != this.vertices.length) {
             console.log("ERROR: Number of vertices passed along does not equal number of vertices in mesh");
             return;
         }
         // Step 1: Copy over vertices and bone IDs
-        this.boneIDs = new Int32Array(boneIDs.length);
+        this.boneIDs = new Float32Array(boneIDs.length);
         for (let i = 0; i < X.length; i++) {
             this.vertices[i].pos = X[i];
             this.boneIDs[i] = boneIDs[i];
         }
         this.updateBoneTransforms(boneTransforms);
+        this.updateBuffers(this.gl);
     }
     
 
     /** Bind all buffers according to what the shader accepts.
      * This includes vertex positions, normals, colors, lighting,
      * and triangle index buffers
+     * In addition, bind all of the bone transformation matrices
      * 
      * @param {object} canvas canvas object (see render() doc for more info)
      * @param {object} sProg A shader program to use

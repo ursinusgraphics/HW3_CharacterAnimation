@@ -22,6 +22,7 @@
 
 <script src="skinmesh.js"></script>
 <script src="skincanvas.js"></script>
+<script src="skindebugplots.js"></script>
 <script src="skin.js"></script>
 </head>
 
@@ -41,16 +42,11 @@
     let meshInfo = document.getElementById('meshInfo');
 
     $.get("rigs/homerskel.json", function(skeleton) {
-        $.get("rigs/homer.off", function(src) {
+        $.get("rigs/homer3x.off", function(src) {
             let lines = src.split("\n");
             canvas.mesh.loadFileFromLines(lines);
             canvas.centerCamera();
-            // Put mesh vertex positions in a list
-            X = [];
-            for (let i = 0; i < canvas.mesh.vertices.length; i++) {
-                X.push(glMatrix.vec3.clone(canvas.mesh.vertices[i].pos));
-            }
-            main(skeleton, X);
+            main(skeleton, canvas.mesh);
         });
     });
 
