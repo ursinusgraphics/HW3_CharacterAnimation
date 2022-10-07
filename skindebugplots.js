@@ -5,8 +5,8 @@
  */
  function getAxesEqual(vs) {
   //Determine the axis ranges
-  minval = 0;
-  maxval = 0;
+  let minval = 0;
+  let maxval = 0;
   for (let i = 0; i < vs.length; i++) {
       for (let j = 0; j < 3; j++) {
           if (vs[i][j] < minval){ minval = vs[i][j]; }
