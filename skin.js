@@ -1,19 +1,3 @@
-// An example class you could use to encapsulate a joint
-// (feel free to modify this)
-class Joint {
-  /**
-   * @param {string} name Name of this joint
-   * @param {vec3} pos Position of this joint
-   */
-  constructor(name, pos) {
-    this.name = name;
-    this.pos = glMatrix.vec3.clone(pos);
-    this.leaf = false;
-    this.parent = null;
-    this.children = [];
-  }
-}
-
 /**
  * Return a list of the vertex coordinates in a mesh
  * @param {SkinMesh} mesh The mesh
