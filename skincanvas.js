@@ -12,11 +12,13 @@ class SkinCanvas extends BaseCanvas {
      * @param {DOM Element} glcanvas Handle to HTML where the glcanvas resides
      * @param {string} shadersrelpath Path to the folder that contains the shaders,
      *                                relative to where the constructor is being called
-     * @param {antialias} boolean Whether antialiasing is enabled (true by default)
-     */
-    constructor(glcanvas, shadersrelpath, antialias) {
+     * @param {boolean} antialias Whether antialiasing is enabled (true by default)
+     * @param {int} nBlend Number of bones to blend together 
+    */
+    constructor(glcanvas, shadersrelpath, antialias, nBlend) {
         super(glcanvas, shadersrelpath, antialias);
-        this.mesh = new SkinMesh(this, this.gl);
+        this.nBlend = nBlend;
+        this.mesh = new SkinMesh(this, this.gl, nBlend);
         this.camera = new MousePolarCamera(glcanvas.width, glcanvas.height);
         
         this.gui = new dat.GUI();
@@ -69,14 +71,30 @@ class SkinCanvas extends BaseCanvas {
         this.shaders.skinShader = new Promise((resolve, reject) => {
             getShaderProgramAsync(gl, "skin").then((shader) => {
                 shader.description = 'Skinning shader: blinn-phong + transformations';
-                shader.vPosAttrib = gl.getAttribLocation(shader, "vPos");
-                gl.enableVertexAttribArray(shader.vPosAttrib);
-                shader.vNormalAttrib = gl.getAttribLocation(shader, "vNormal");
-                gl.enableVertexAttribArray(shader.vNormalAttrib);
-                shader.vColorAttrib = gl.getAttribLocation(shader, "vColor");
-                gl.enableVertexAttribArray(shader.vColorAttrib);
-                shader.vBoneIdxAttrib = gl.getAttribLocation(shader, "vBoneIdx");
-                gl.enableVertexAttribArray(shader.vBoneIdxAttrib);
+
+                for (let k = 0; k < this.nBlend; k++) {
+                    let key = "vPos"+k+"Attrib";
+                    shader[key] = gl.getAttribLocation(shader, "vPos"+k);
+                    gl.enableVertexAttribArray(shader[key]);
+
+                    key = "vNormal"+k+"Attrib";
+                    shader[key] = gl.getAttribLocation(shader, "vNormal"+k);
+                    gl.enableVertexAttribArray(shader[key]);
+
+                    key = "vColor"+k+"Attrib";
+                    shader[key] = gl.getAttribLocation(shader, "vColor"+k);
+                    gl.enableVertexAttribArray(shader[key]);
+
+                    key = "vBoneIdx"+k+"Attrib"
+                    shader[key] = gl.getAttribLocation(shader, "vBoneIdx"+k);
+                    gl.enableVertexAttribArray(shader[key]);
+
+                    key = "w"+k+"Attrib";
+                    shader[key] = gl.getAttribLocation(shader, "w"+k);
+                    gl.enableVertexAttribArray(shader[key]);
+                }
+
+
                 shader.pMatrixUniform = gl.getUniformLocation(shader, "uPMatrix");
                 shader.mvMatrixUniform = gl.getUniformLocation(shader, "uMVMatrix");
                 shader.tMatrixUniform = gl.getUniformLocation(shader, "tMatrix");

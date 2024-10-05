@@ -36,7 +36,7 @@
 <script>
     let glcanvas = document.getElementById("MainGLCanvas");
     glcanvas.addEventListener("contextmenu", function(e){ e.stopPropagation(); e.preventDefault(); return false; }); //Need this to disable the menu that pops up on right clicking
-    let canvas = new SkinCanvas(glcanvas, "ggslac/shaders/");
+    let canvas = new SkinCanvas(glcanvas, "ggslac/shaders/", true, 2);
 
     let meshInput = document.getElementById('meshInput');
     let meshInfo = document.getElementById('meshInfo');
