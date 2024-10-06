@@ -17,6 +17,12 @@ attribute vec3 vColor1;
 attribute float vBoneIdx1;
 attribute float w1;
 
+attribute vec3 vPos2;
+attribute vec3 vNormal2;
+attribute vec3 vColor2;
+attribute float vBoneIdx2;
+attribute float w2;
+
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
 uniform mat4 tMatrix;
@@ -40,11 +46,15 @@ void main(void) {
                 v = v + w1*(boneTransforms[i]*vec4(vPos1, 1.0)).xyz;
                 n = n + w1*boneNormalTransforms[i]*vNormal1;
             }
+            else if (vBoneIdx2 - float(i) == 0.0) {
+                v = v + w2*(boneTransforms[i]*vec4(vPos2, 1.0)).xyz;
+                n = n + w2*boneNormalTransforms[i]*vNormal2;
+            }
         }
     }
     n = normalize(n);
     V = v;
     N = n;
-    C = w0*vColor0 + w1*vColor1;
+    C = w0*vColor0 + w1*vColor1 + w2*vColor2;
     gl_Position = uPMatrix*uMVMatrix*tMatrix*vec4(v, 1.0);
 }
