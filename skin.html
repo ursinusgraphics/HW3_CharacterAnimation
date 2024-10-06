@@ -36,13 +36,13 @@
 <script>
     let glcanvas = document.getElementById("MainGLCanvas");
     glcanvas.addEventListener("contextmenu", function(e){ e.stopPropagation(); e.preventDefault(); return false; }); //Need this to disable the menu that pops up on right clicking
-    let canvas = new SkinCanvas(glcanvas, "ggslac/shaders/", true, 2);
+    let canvas = new SkinCanvas(glcanvas, "ggslac/shaders/", true, 3);
 
     let meshInput = document.getElementById('meshInput');
     let meshInfo = document.getElementById('meshInfo');
 
-    $.get("rigs/homerskel.json", function(skeleton) {
-        $.get("rigs/homer3x.off", function(src) {
+    $.get("rigs/homer.json", function(skeleton) {
+        $.get("rigs/homer.off", function(src) {
             let lines = src.split("\n");
             canvas.mesh.loadFileFromLines(lines);
             canvas.centerCamera();
